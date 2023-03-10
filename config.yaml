@@ -1,0 +1,7 @@
+service:
+  serverPort: 8080
+  adminPassword: "admin"
+  cors: true
+log:
+  output: stdout
+  format: string

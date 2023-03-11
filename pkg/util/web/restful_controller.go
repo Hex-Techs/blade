@@ -34,7 +34,12 @@ type RestController interface {
 	// 当前资源名称
 	Name() string
 	// return the relation
-	RelationObject() map[Method][]gin.HandlerFunc
+	RelationObject() map[Method]HandlerFunc
+}
+
+type HandlerFunc struct {
+	Funcs []gin.HandlerFunc
+	Admin bool
 }
 
 // basicAPIGroup is the basic api group
@@ -75,7 +80,7 @@ func (r *RestfulAPI) handleParameter(rc RestController) {
 	}
 }
 
-func (r *RestfulAPI) option(method Method, group *gin.RouterGroup, funcs []gin.HandlerFunc) {
+func (r *RestfulAPI) option(method Method, group *gin.RouterGroup, funcs HandlerFunc) {
 	switch method {
 	case Get:
 		r.get(group, funcs)
@@ -89,28 +94,53 @@ func (r *RestfulAPI) option(method Method, group *gin.RouterGroup, funcs []gin.H
 		r.update(group, funcs)
 	}
 }
-func (r *RestfulAPI) create(group *gin.RouterGroup, funcs []gin.HandlerFunc) {
-	for _, ops := range funcs {
-		group.POST(r.path, ops)
+
+func (r *RestfulAPI) create(group *gin.RouterGroup, funcs HandlerFunc) {
+	for _, ops := range funcs.Funcs {
+		if funcs.Admin {
+			group.POST(r.path, LoginRequired(), AdminRequired(), ops)
+		} else {
+			group.POST(r.path, LoginRequired(), ops)
+		}
 	}
 }
-func (r *RestfulAPI) delete(group *gin.RouterGroup, funcs []gin.HandlerFunc) {
-	for _, ops := range funcs {
-		group.DELETE(r.longpath, ops)
+
+func (r *RestfulAPI) delete(group *gin.RouterGroup, funcs HandlerFunc) {
+	for _, ops := range funcs.Funcs {
+		if funcs.Admin {
+			group.DELETE(r.longpath, LoginRequired(), AdminRequired(), ops)
+		} else {
+			group.DELETE(r.longpath, LoginRequired(), ops)
+		}
 	}
 }
-func (r *RestfulAPI) update(group *gin.RouterGroup, funcs []gin.HandlerFunc) {
-	for _, ops := range funcs {
-		group.PUT(r.longpath, ops)
+
+func (r *RestfulAPI) update(group *gin.RouterGroup, funcs HandlerFunc) {
+	for _, ops := range funcs.Funcs {
+		if funcs.Admin {
+			group.PUT(r.longpath, LoginRequired(), AdminRequired(), ops)
+		} else {
+			group.PUT(r.longpath, LoginRequired(), ops)
+		}
 	}
 }
-func (r *RestfulAPI) get(group *gin.RouterGroup, funcs []gin.HandlerFunc) {
-	for _, ops := range funcs {
-		group.GET(r.longpath, ops)
+
+func (r *RestfulAPI) get(group *gin.RouterGroup, funcs HandlerFunc) {
+	for _, ops := range funcs.Funcs {
+		if funcs.Admin {
+			group.GET(r.longpath, LoginRequired(), AdminRequired(), ops)
+		} else {
+			group.GET(r.longpath, LoginRequired(), ops)
+		}
 	}
 }
-func (r *RestfulAPI) list(group *gin.RouterGroup, funcs []gin.HandlerFunc) {
-	for _, ops := range funcs {
-		group.GET(r.path, ops)
+
+func (r *RestfulAPI) list(group *gin.RouterGroup, funcs HandlerFunc) {
+	for _, ops := range funcs.Funcs {
+		if funcs.Admin {
+			group.GET(r.path, LoginRequired(), AdminRequired(), ops)
+		} else {
+			group.GET(r.path, LoginRequired(), ops)
+		}
 	}
 }

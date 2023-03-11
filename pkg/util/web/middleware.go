@@ -35,3 +35,16 @@ func LoginRequired() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// 必须是管理员才能访问的中间件
+func AdminRequired() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		claims := GetCurrentUser(c)
+		if !claims.Admin {
+			c.JSON(http.StatusForbidden, ExceptResponse(http.StatusForbidden, "no permission"))
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+}

@@ -134,12 +134,12 @@ func (uc *UserController) List(c *gin.Context) {
 }
 
 // RelationObject returns the action and func correspondence
-func (uc *UserController) RelationObject() map[web.Method][]gin.HandlerFunc {
-	return map[web.Method][]gin.HandlerFunc{
-		web.Create: {uc.Create},
-		web.Delete: {uc.Delete},
-		web.Update: {uc.Update},
-		web.Get:    {uc.Get},
-		web.List:   {uc.List},
+func (uc *UserController) RelationObject() map[web.Method]web.HandlerFunc {
+	return map[web.Method]web.HandlerFunc{
+		web.Create: {Funcs: []gin.HandlerFunc{uc.Create}, Admin: true},
+		web.Delete: {Funcs: []gin.HandlerFunc{uc.Delete}, Admin: true},
+		web.Update: {Funcs: []gin.HandlerFunc{uc.Update}},
+		web.Get:    {Funcs: []gin.HandlerFunc{uc.Get}},
+		web.List:   {Funcs: []gin.HandlerFunc{uc.List}, Admin: true},
 	}
 }

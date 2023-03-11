@@ -38,6 +38,9 @@ func initDB(s *storage.Engine) {
 }
 
 func initAdmin(s *storage.Engine) error {
+	if s.IsExist(context.TODO(), 0, "admin", &models.User{}) {
+		return nil
+	}
 	u := &models.User{
 		Name:     "admin",
 		CnName:   "管理员",

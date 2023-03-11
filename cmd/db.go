@@ -43,6 +43,7 @@ func initAdmin(s *storage.Engine) error {
 		CnName:   "管理员",
 		Password: config.Read().Service.AdminPassword,
 		Email:    "admin@example.com",
+		Admin:    true,
 	}
 	u.EncodePasswd()
 	if err := s.Create(context.TODO(), u); err != nil {

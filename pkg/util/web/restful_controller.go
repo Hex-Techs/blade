@@ -91,7 +91,7 @@ func (r *RestfulAPI) option(method Method, group *gin.RouterGroup, funcs []gin.H
 }
 func (r *RestfulAPI) create(group *gin.RouterGroup, funcs []gin.HandlerFunc) {
 	for _, ops := range funcs {
-		group.POST(r.longpath, ops)
+		group.POST(r.path, ops)
 	}
 }
 func (r *RestfulAPI) delete(group *gin.RouterGroup, funcs []gin.HandlerFunc) {

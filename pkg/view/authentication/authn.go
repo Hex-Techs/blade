@@ -28,7 +28,10 @@ func NewAuthn(s *storage.Engine) *Authn {
 func (a *Authn) Login(c *gin.Context) {
 	var f LoginForm
 	var user models.User
-	c.ShouldBindJSON(&f)
+	if err := c.ShouldBindJSON(&f); err != nil {
+		c.JSON(http.StatusBadRequest, web.ExceptResponse(errorMap[ErrInvalidParam], err))
+		return
+	}
 	if err := a.Store.Get(context.TODO(), 0, f.Name, &user); err != nil {
 		if err.Error() != "record not found" {
 			c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrOther], err))
@@ -53,7 +56,10 @@ func (a *Authn) Login(c *gin.Context) {
 // 注册用户
 func (a *Authn) Register(c *gin.Context) {
 	var f RegisterForm
-	c.ShouldBindJSON(f)
+	if err := c.ShouldBindJSON(&f); err != nil {
+		c.JSON(http.StatusBadRequest, web.ExceptResponse(errorMap[ErrInvalidParam], err))
+		return
+	}
 	// 判断邮箱是否可以注册
 	l := strings.Split(f.Email, "@")
 	company := l[1]
@@ -83,8 +89,12 @@ func (a *Authn) Register(c *gin.Context) {
 func (a *Authn) ChangePassword(c *gin.Context) {
 	var f ChangePasswordForm
 	var user models.User
-	c.ShouldBindJSON(&f)
-	if err := a.Store.Get(context.TODO(), 0, "", &user); err != nil {
+	if err := c.ShouldBindJSON(&f); err != nil {
+		c.JSON(http.StatusBadRequest, web.ExceptResponse(errorMap[ErrInvalidParam], err))
+		return
+	}
+	u := web.GetCurrentUser(c)
+	if err := a.Store.Get(context.TODO(), u.ID, u.Name, &user); err != nil {
 		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrChangePasswordFailed], err))
 		return
 	}
@@ -104,15 +114,18 @@ func (a *Authn) ChangePassword(c *gin.Context) {
 
 // 请求重置密码
 func (a *Authn) ResetPasswordRequest(c *gin.Context) {
-	var f LoginForm
+	var f ForgetPasswordForm
 	var user models.User
-	c.ShouldBindJSON(&f)
+	if err := c.ShouldBindJSON(&f); err != nil {
+		c.JSON(http.StatusBadRequest, web.ExceptResponse(errorMap[ErrInvalidParam], err))
+		return
+	}
 	if err := a.Store.Get(context.TODO(), 0, f.Name, &user); err != nil {
 		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrAccountNotFound], err))
 		return
 	}
 	mc := config.Read().Email
-	if mc.Enabled {
+	if mc != nil && mc.Enabled {
 		body := fmt.Sprintf("重置密码链接： %s%s/%s，有效时间%d秒。",
 			config.Read().Service.Domain, config.Read().Service.ResetPath,
 			token.GenerateCustomToken(f.Name, int(config.Read().Service.URLExpired)), config.Read().Service.URLExpired)
@@ -120,19 +133,20 @@ func (a *Authn) ResetPasswordRequest(c *gin.Context) {
 			c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrSendResetEmailFailed], err))
 			return
 		}
-	}
-	if !mc.Enabled {
+	} else {
 		c.JSON(http.StatusOK, web.DataResponse("未开启邮件服务，请联系管理员重置密码！"))
 		return
 	}
 	c.JSON(http.StatusOK, web.OkResponse())
-	return
 }
 
 // 重置密码
 func (a *Authn) ResetPassword(c *gin.Context) {
-	var f ChangePasswordForm
-	c.ShouldBindJSON(&f)
+	var f ResetPasswordForm
+	if err := c.ShouldBindJSON(&f); err != nil {
+		c.JSON(http.StatusBadRequest, web.ExceptResponse(errorMap[ErrInvalidParam], err))
+		return
+	}
 	if f.Token == "" {
 		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrResetTokenInvalid], ErrResetTokenInvalid))
 		return
@@ -147,7 +161,7 @@ func (a *Authn) ResetPassword(c *gin.Context) {
 		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrResetPasswordFailed], err))
 		return
 	}
-	u.Password = f.NewPassword
+	u.Password = f.Password
 	u.EncodePasswd()
 	if err := a.Store.Update(context.TODO(), u.ID, u.Name, &u, &u); err != nil {
 		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrResetPasswordFailed], err))

@@ -62,6 +62,7 @@ func (u *User) GenUser() error {
 	claim := &token.Claims{
 		ID:             u.ID,
 		Name:           u.Name,
+		Admin:          u.Admin,
 		StandardClaims: jwt.StandardClaims{},
 	}
 	t, e, err := token.GenerateJWTToken(claim, config.Read().Service.TokenExpired)

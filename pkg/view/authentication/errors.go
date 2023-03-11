@@ -19,6 +19,8 @@ const (
 	ErrResetTokenInvalid = "reset token invalid"
 	// 重置密码失败
 	ErrResetPasswordFailed = "reset password failed"
+	// 无效的参数
+	ErrInvalidParam = "invalid param"
 	// 其他错误
 	ErrOther = "other error"
 )
@@ -33,5 +35,6 @@ var errorMap = map[string]int{
 	ErrResetTokenInvalid:    10007,
 	ErrResetPasswordFailed:  10008,
 	ErrChangePasswordFailed: 10009,
-	ErrOther:                10010,
+	ErrInvalidParam:         10010,
+	ErrOther:                10011,
 }

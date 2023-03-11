@@ -17,7 +17,7 @@ type Base struct {
 	// 更新时间
 	UpdatedAt time.Time `json:"updatedAt"`
 	// 删除时间
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 // BeforeInsert 在插入数据之前设置创建时间

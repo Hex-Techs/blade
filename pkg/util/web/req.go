@@ -15,39 +15,71 @@ const (
 // Request request object
 type Request struct {
 	//  页码
-	Page int `query:"page"`
+	Page int `form:"page"`
 	// 每页数量
-	Limit int `query:"limit"`
+	Limit int `form:"limit"`
 	// 项目名称
-	Project string `query:"project"`
+	Project string `form:"project"`
 	// 集群名称
-	Cluster string `query:"cluster" param:"cluster"`
+	Cluster string `form:"cluster"`
 	// 命名空间
-	Namespace string `query:"namespace" param:"namespace"`
+	Namespace string `form:"namespace"`
 	// 资源名称
-	Name string `query:"name" param:"name"`
+	Name string `form:"name"`
 	// Workload名称
-	Workload string `query:"workload"`
+	Workload string `form:"workload"`
 	// 资源owner
-	Owner string `query:"owner"`
+	Owner string `form:"owner"`
 	// 资源owner类型
-	OwnerKind string `query:"ownerKind"`
+	OwnerKind string `form:"ownerKind"`
 	// pod 可能会用到的参数
-	Log       bool   `query:"log"`
-	Event     bool   `query:"event"`
-	Container string `query:"container"`
-	Follow    bool   `query:"follow"`
-	Tail      int    `query:"tail"`
-	Previous  bool   `query:"previous"`
-	SinceTime string `query:"sinceTime"`
-	Describe  bool   `query:"describe"`
+	Log       bool   `form:"log"`
+	Event     bool   `form:"event"`
+	Container string `form:"container"`
+	Follow    bool   `form:"follow"`
+	Tail      int    `form:"tail"`
+	Previous  bool   `form:"previous"`
+	SinceTime string `form:"sinceTime"`
+	Describe  bool   `form:"describe"`
 }
 
-// Query k8s resource query structure
+func (q *Request) Default() {
+	if q.Limit < 0 {
+		q.Limit = -1
+		q.Page = 1
+	}
+}
+
+// HandleDefult 处理分页参数
+func (q *Request) HandleDefult(total int) {
+	totalPages := 1
+	// limit <0 时，不分页
+	if q.Limit < 0 {
+		q.Page = totalPages
+		q.Limit = total
+		return
+	}
+	if q.Page <= 0 {
+		q.Page = _defaultCurrentPage
+	}
+	if q.Limit == 0 {
+		q.Limit = _defaultPageSize
+	}
+	if total > q.Limit {
+		totalPages = total / q.Limit
+		if total%q.Limit > 0 {
+			totalPages = totalPages + 1
+		}
+	}
+	if q.Page > totalPages {
+		q.Page = totalPages
+	}
+}
+
 type Query struct {
-	// cluster to query
+	// cluster to form
 	Cluster string
-	// namespace to query
+	// namespace to form
 	Namespace string
 	// current page
 	CurrentPage int
@@ -61,30 +93,4 @@ type Query struct {
 	UpdateOption *metav1.UpdateOptions
 	// raw label selector
 	Selector labels.Selector
-}
-
-// HandleQueryParam 处理分页参数，返回总页数
-func (q *Query) HandleQueryParam(total int) int {
-	totalPages := 1
-	// pagesize不合理的数据可用来表示获取所有
-	if q.PageSize <= 0 {
-		q.CurrentPage = 1
-		return totalPages
-	}
-	if q.CurrentPage <= 0 {
-		q.CurrentPage = _defaultCurrentPage
-	}
-	if q.PageSize <= 0 {
-		q.PageSize = _defaultPageSize
-	}
-	if total > q.PageSize {
-		totalPages = total / q.PageSize
-		if total%q.PageSize > 0 {
-			totalPages = totalPages + 1
-		}
-	}
-	if q.CurrentPage > totalPages {
-		q.CurrentPage = totalPages
-	}
-	return totalPages
 }

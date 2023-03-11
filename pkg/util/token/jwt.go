@@ -10,8 +10,9 @@ const title = "blade"
 
 // Claims jwt object
 type Claims struct {
-	ID   uint
-	Name string
+	ID    uint
+	Name  string
+	Admin bool
 	jwt.StandardClaims
 }
 

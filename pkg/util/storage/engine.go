@@ -127,7 +127,7 @@ func (s *Engine) ForceDelete(ctx context.Context, id uint, name string, v interf
 // List 根据给定的数据返回一个数据列表
 // TODO: condition有sql注入风险
 func (s *Engine) List(ctx context.Context, size, current int, condition string, v interface{}) (int64, error) {
-	count := s.handleCount(condition, v)
+	count := s.Count(condition, v)
 	countInt := int(count)
 	limit, offset := s.handleList(size, current, countInt)
 	var result *gorm.DB
@@ -148,7 +148,7 @@ func (s *Engine) List(ctx context.Context, size, current int, condition string, 
 }
 
 // 处理记录数量
-func (s *Engine) handleCount(condition string, v interface{}) int64 {
+func (s *Engine) Count(condition string, v interface{}) int64 {
 	var count int64
 	var err error
 	switch {

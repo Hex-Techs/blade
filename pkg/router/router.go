@@ -5,10 +5,17 @@ import (
 	"github.com/hex-techs/blade/pkg/util/storage"
 	"github.com/hex-techs/blade/pkg/util/web"
 	"github.com/hex-techs/blade/pkg/view/authentication"
+	"github.com/hex-techs/blade/pkg/view/module"
 	"github.com/hex-techs/blade/pkg/view/user"
 )
 
-func InstallAuthn(r *gin.Engine, s *storage.Engine) {
+func InstallAPI(r *gin.Engine, s *storage.Engine) {
+	installAuthn(r, s)
+	installUserAPI(r, s)
+	installModuleAPI(r, s)
+}
+
+func installAuthn(r *gin.Engine, s *storage.Engine) {
 	api := authentication.NewAuthn(s)
 	group := r.Group("/api/v1/auth")
 	{
@@ -20,9 +27,16 @@ func InstallAuthn(r *gin.Engine, s *storage.Engine) {
 	}
 }
 
-func InstallUserAPI(r *gin.Engine, s *storage.Engine) {
+func installUserAPI(r *gin.Engine, s *storage.Engine) {
 	u := web.RestfulAPI{
 		PostParameter: "/:id",
 	}
 	u.Install(r, user.NewUserController(s))
+}
+
+func installModuleAPI(r *gin.Engine, s *storage.Engine) {
+	u := web.RestfulAPI{
+		PostParameter: "/:id",
+	}
+	u.Install(r, module.NewModuleController(s))
 }

@@ -2,11 +2,11 @@ package user
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hex-techs/blade/pkg/models"
+	"github.com/hex-techs/blade/pkg/util/log"
 	"github.com/hex-techs/blade/pkg/util/storage"
 	"github.com/hex-techs/blade/pkg/util/web"
 	"github.com/hex-techs/blade/pkg/view"
@@ -25,12 +25,12 @@ func NewUserController(s *storage.Engine) web.RestController {
 }
 
 // 版本号
-func (uc *UserController) Version() string {
+func (*UserController) Version() string {
 	return "v1"
 }
 
 // 资源名
-func (uc *UserController) Name() string {
+func (*UserController) Name() string {
 	return "user"
 }
 
@@ -38,11 +38,13 @@ func (uc *UserController) Name() string {
 func (uc *UserController) Create(c *gin.Context) {
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, web.ExceptResponse(1, err))
+		c.JSON(http.StatusBadRequest, web.ExceptResponse(errorMap[ErrInvalidParam], err))
 		return
 	}
+	log.Debugf("create user: %v", user)
 	if err := uc.Store.Create(context.TODO(), &user); err != nil {
-		c.JSON(http.StatusOK, web.ExceptResponse(1, err))
+		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrCreateUserFailed], err))
+		return
 	}
 	c.JSON(http.StatusOK, web.OkResponse())
 }
@@ -51,17 +53,17 @@ func (uc *UserController) Create(c *gin.Context) {
 func (uc *UserController) Delete(c *gin.Context) {
 	id, err := view.GetID(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, web.ExceptResponse(1, err))
+		c.JSON(http.StatusBadRequest, web.ExceptResponse(errorMap[ErrInvalidParam], err))
 		return
 	}
 	u := web.GetCurrentUser(c)
 	// 不能删除自己
 	if u.ID == id {
-		c.JSON(http.StatusOK, web.ExceptResponse(1, "can not delete yourself"))
+		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrDeleteSelf], ErrDeleteSelf))
 		return
 	}
-	if err := uc.Store.Delete(context.TODO(), u.ID, u.Name, &models.User{}); err != nil {
-		c.JSON(http.StatusOK, web.ExceptResponse(1, err))
+	if err := uc.Store.Delete(context.TODO(), id, "", &models.User{}); err != nil {
+		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrDeleteUserFailed], err))
 		return
 	}
 	c.JSON(http.StatusOK, web.OkResponse())
@@ -71,23 +73,24 @@ func (uc *UserController) Delete(c *gin.Context) {
 func (uc *UserController) Update(c *gin.Context) {
 	id, err := view.GetID(c)
 	if err != nil {
-		c.JSON(http.StatusOK, web.ExceptResponse(1, err))
+		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrID], err))
 		return
 	}
 	var user models.User
 	c.ShouldBindJSON(&user)
 	u := web.GetCurrentUser(c)
+	log.Debugw("update user", "id", id, "user", user, "current user", u)
 	if !u.Admin && u.ID != id {
-		c.JSON(http.StatusOK, web.ExceptResponse(1, fmt.Errorf("can not update other user")))
+		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrUpdateOther], ErrUpdateOther))
 		return
 	}
 	if err := uc.Store.Update(context.TODO(), id, "", &models.User{}, &user); err != nil {
-		c.JSON(http.StatusOK, web.ExceptResponse(1, err))
+		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrUpdateUserFailed], err))
 		return
 	}
 	// flush user info and token
 	if err := user.GenUser(); err != nil {
-		c.JSON(http.StatusOK, web.ExceptResponse(1, err))
+		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrGenerateUserToken], err))
 		return
 	}
 	user.TruncatePassword()
@@ -98,17 +101,17 @@ func (uc *UserController) Update(c *gin.Context) {
 func (uc *UserController) Get(c *gin.Context) {
 	id, err := view.GetID(c)
 	if err != nil {
-		c.JSON(http.StatusOK, web.ExceptResponse(1, err))
+		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrID], err))
 		return
 	}
 	u := web.GetCurrentUser(c)
 	if !u.Admin && u.ID != id {
-		c.JSON(http.StatusOK, web.ExceptResponse(1, fmt.Errorf("can not get other user")))
+		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrGetOther], ErrGetOther))
 		return
 	}
 	var user models.User
 	if err := uc.Store.Get(context.TODO(), id, "", &user); err != nil {
-		c.JSON(http.StatusOK, web.ExceptResponse(1, err))
+		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrGetUserFailed], err))
 		return
 	}
 	user.TruncatePassword()
@@ -118,12 +121,16 @@ func (uc *UserController) Get(c *gin.Context) {
 // List 获取用户列表
 func (uc *UserController) List(c *gin.Context) {
 	var req web.Request
-	c.ShouldBindQuery(&req)
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, web.ExceptResponse(errorMap[ErrInvalidParam], err))
+		return
+	}
 	req.Default()
+	log.Debugf("list user: %v", req)
 	var users []models.User
 	total, err := uc.Store.List(context.TODO(), req.Limit, req.Page, "", &users)
 	if err != nil {
-		c.JSON(http.StatusOK, web.ExceptResponse(1, err))
+		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrGetUserListFailed], err))
 		return
 	}
 	for i, u := range users {

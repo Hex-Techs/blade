@@ -30,7 +30,7 @@ func initDB(s *storage.Engine) {
 		c.SetMaxOpenConns(config.Read().DB.MaxOpenConns)
 	}
 	// 自动迁移
-	if err := db.AutoMigrate(&models.User{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}, &models.Module{}); err != nil {
 		log.Fatalf("auto migrate table error: %v", err)
 		return
 	}

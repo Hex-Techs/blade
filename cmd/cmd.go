@@ -22,7 +22,6 @@ func Run() *gin.Engine {
 	}
 
 	r := gin.Default()
-	router.InstallAuthn(r, s)
-	router.InstallUserAPI(r, s)
+	router.InstallAPI(r, s)
 	return r
 }

@@ -63,6 +63,18 @@ func getLogWriter() zapcore.WriteSyncer {
 	return zapcore.AddSync(zapcore.Lock(os.Stdout))
 }
 
+func Debug(args ...interface{}) {
+	sugaredLogger.Debug(args...)
+}
+
+func Debugf(template string, args ...interface{}) {
+	sugaredLogger.Debugf(template, args...)
+}
+
+func Debugw(msg string, args ...interface{}) {
+	sugaredLogger.Debugw(msg, args...)
+}
+
 func Info(args ...interface{}) {
 	sugaredLogger.Info(args...)
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hex-techs/blade/pkg/models"
 	"github.com/hex-techs/blade/pkg/util/config"
+	"github.com/hex-techs/blade/pkg/util/log"
 	"github.com/hex-techs/blade/pkg/util/mail"
 	"github.com/hex-techs/blade/pkg/util/storage"
 	"github.com/hex-techs/blade/pkg/util/token"
@@ -32,6 +33,7 @@ func (a *Authn) Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, web.ExceptResponse(errorMap[ErrInvalidParam], err))
 		return
 	}
+	log.Debugf("login user: %v", f)
 	if err := a.Store.Get(context.TODO(), 0, f.Name, &user); err != nil {
 		if err.Error() != "record not found" {
 			c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrOther], err))
@@ -60,6 +62,7 @@ func (a *Authn) Register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, web.ExceptResponse(errorMap[ErrInvalidParam], err))
 		return
 	}
+	log.Debugf("register user: %v", f)
 	// 判断邮箱是否可以注册
 	l := strings.Split(f.Email, "@")
 	company := l[1]
@@ -94,6 +97,7 @@ func (a *Authn) ChangePassword(c *gin.Context) {
 		return
 	}
 	u := web.GetCurrentUser(c)
+	log.Debugw("change password", "user", u, "form", f)
 	if err := a.Store.Get(context.TODO(), u.ID, u.Name, &user); err != nil {
 		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrChangePasswordFailed], err))
 		return
@@ -120,6 +124,7 @@ func (a *Authn) ResetPasswordRequest(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, web.ExceptResponse(errorMap[ErrInvalidParam], err))
 		return
 	}
+	log.Debugw("reset password request", "user", f)
 	if err := a.Store.Get(context.TODO(), 0, f.Name, &user); err != nil {
 		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrAccountNotFound], err))
 		return
@@ -147,6 +152,7 @@ func (a *Authn) ResetPassword(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, web.ExceptResponse(errorMap[ErrInvalidParam], err))
 		return
 	}
+	log.Debugf("reset password: %v", f)
 	if f.Token == "" {
 		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrResetTokenInvalid], ErrResetTokenInvalid))
 		return

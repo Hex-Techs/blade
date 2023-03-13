@@ -21,6 +21,12 @@ type Base struct {
 }
 
 // BeforeInsert 在插入数据之前设置创建时间
-func (b *Base) BeforeInsert() {
+func (b *Base) BeforeCreate(tx *gorm.DB) error {
 	b.CreatedAt = time.Now()
+	return nil
+}
+
+func (b *Base) BeforeUpdate(tx *gorm.DB) error {
+	b.UpdatedAt = time.Now()
+	return nil
 }

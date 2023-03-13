@@ -18,6 +18,10 @@ type Request struct {
 	Page int `form:"page"`
 	// 每页数量
 	Limit int `form:"limit"`
+	// 父模块id
+	ParentID int `form:"parentID"`
+	// 模块级别
+	Level int `form:"level"`
 	// 项目名称
 	Project string `form:"project"`
 	// 集群名称

@@ -15,13 +15,13 @@ import (
 type User struct {
 	Base
 	// 用户名，默认英文，唯一，不可为空
-	Name string `gorm:"unique,index,size:64,not null" json:"name"`
+	Name string `gorm:"unique,index,size:64,not null" json:"name" binding:"required"`
 	// 中文名称
-	CnName string `gorm:"size:64" json:"cnName"`
+	CnName string `gorm:"size:64" json:"cnName" binding:"required"`
 	// 用户密码，加密后存储
 	Password string `gorm:"size:1024" json:"password"`
 	// 用户邮箱，唯一，不可为空
-	Email string `gorm:"unique,index,not null" json:"email"`
+	Email string `gorm:"unique,index,not null" json:"email" binding:"required"`
 	// 是否是管理员
 	Admin bool `gorm:"default:false" json:"admin"`
 	// 是否有效

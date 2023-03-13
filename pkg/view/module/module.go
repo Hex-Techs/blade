@@ -76,7 +76,7 @@ func (mc *ModuleController) delete(id uint) error {
 			return err
 		}
 	}
-	return mc.Store.Delete(context.TODO(), id, "", &models.Module{})
+	return mc.Store.ForceDelete(context.TODO(), id, "", &models.Module{})
 }
 
 // Update 更新模块信息

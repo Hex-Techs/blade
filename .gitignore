@@ -25,4 +25,5 @@ go.work
 bin/*
 blade.db
 blade
+sqlite.db
 http.rest

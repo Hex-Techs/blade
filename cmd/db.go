@@ -3,10 +3,10 @@ package cmd
 import (
 	"context"
 
+	"github.com/fize/go-ext/log"
 	"github.com/hex-techs/blade/pkg/models"
-	"github.com/hex-techs/blade/pkg/util/config"
-	"github.com/hex-techs/blade/pkg/util/log"
-	"github.com/hex-techs/blade/pkg/util/storage"
+	"github.com/hex-techs/blade/pkg/utils/config"
+	"github.com/hex-techs/blade/pkg/utils/storage"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )

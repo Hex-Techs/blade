@@ -7,8 +7,9 @@ import (
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
-	"github.com/hex-techs/blade/pkg/util/config"
-	"github.com/hex-techs/klog"
+	ext "github.com/fize/go-ext/config"
+	"github.com/fize/go-ext/log"
+	"github.com/hex-techs/blade/pkg/utils/config"
 )
 
 func Init() (*casbin.Enforcer, error) {
@@ -22,14 +23,14 @@ func Init() (*casbin.Enforcer, error) {
 	var a *gormadapter.Adapter
 	var err error
 
-	if config.Read().DB.Type == config.Mysql {
+	if config.Read().DB.Type == ext.Mysql {
 		link := fmt.Sprintf("%s:%s@tcp(%s)/",
 			config.Read().DB.User, config.Read().DB.Password,
 			config.Read().DB.Host)
 		for {
 			a, err = gormadapter.NewAdapter("mysql", link, config.Read().DB, "casbin")
 			if err != nil {
-				klog.Error(err)
+				log.Error(err)
 				time.Sleep(5 * time.Second)
 			} else {
 				break

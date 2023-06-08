@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 
+	"github.com/fize/go-ext/log"
 	"github.com/hex-techs/blade/cmd"
-	"github.com/hex-techs/blade/pkg/util/config"
-	"github.com/hex-techs/blade/pkg/util/log"
+	"github.com/hex-techs/blade/pkg/utils/config"
 )
 
 func main() {

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hex-techs/blade/pkg/util/token"
+	"github.com/hex-techs/blade/pkg/utils/token"
 )
 
 const CurrentUser = "user"

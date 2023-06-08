@@ -6,14 +6,14 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/fize/go-ext/log"
+	"github.com/fize/go-ext/sendmail"
 	"github.com/gin-gonic/gin"
 	"github.com/hex-techs/blade/pkg/models"
-	"github.com/hex-techs/blade/pkg/util/config"
-	"github.com/hex-techs/blade/pkg/util/log"
-	"github.com/hex-techs/blade/pkg/util/mail"
-	"github.com/hex-techs/blade/pkg/util/storage"
-	"github.com/hex-techs/blade/pkg/util/token"
-	"github.com/hex-techs/blade/pkg/util/web"
+	"github.com/hex-techs/blade/pkg/utils/config"
+	"github.com/hex-techs/blade/pkg/utils/storage"
+	"github.com/hex-techs/blade/pkg/utils/token"
+	"github.com/hex-techs/blade/pkg/utils/web"
 )
 
 // Authn 认证结构体
@@ -130,18 +130,18 @@ func (a *Authn) ResetPasswordRequest(c *gin.Context) {
 		return
 	}
 	mc := config.Read().Email
-	if mc != nil && mc.Enabled {
-		body := fmt.Sprintf("重置密码链接： %s%s/%s，有效时间%d秒。",
-			config.Read().Service.Domain, config.Read().Service.ResetPath,
-			token.GenerateCustomToken(f.Name, int(config.Read().Service.URLExpired)), config.Read().Service.URLExpired)
-		if err := mail.SendEmail(mc.SMTP, mc.Account, mc.Password, user.Email, "Reset Password", body, mc.Port); err != nil {
-			c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrSendResetEmailFailed], err))
-			return
-		}
-	} else {
-		c.JSON(http.StatusOK, web.DataResponse("未开启邮件服务，请联系管理员重置密码！"))
+	// if mc != nil && mc.Enabled {
+	body := fmt.Sprintf("重置密码链接： %s%s/%s，有效时间%d秒。",
+		config.Read().Service.Domain, config.Read().Service.ResetPath,
+		token.GenerateCustomToken(f.Name, int(config.Read().Service.URLExpired)), config.Read().Service.URLExpired)
+	if err := sendmail.SendEmail("blade", mc.SMTP, mc.Account, mc.Password, user.Email, "Reset Password", body, mc.Port); err != nil {
+		c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrSendResetEmailFailed], err))
 		return
 	}
+	// } else {
+	// 	c.JSON(http.StatusOK, web.DataResponse("未开启邮件服务，请联系管理员重置密码！"))
+	// 	return
+	// }
 	c.JSON(http.StatusOK, web.OkResponse())
 }
 

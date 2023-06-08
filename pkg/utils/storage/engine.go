@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/hex-techs/blade/pkg/util/config"
-	"github.com/hex-techs/blade/pkg/util/log"
+	ext "github.com/fize/go-ext/config"
+	"github.com/fize/go-ext/log"
+	"github.com/hex-techs/blade/pkg/utils/config"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -23,7 +24,7 @@ type Engine struct {
 func NewEngine(address, database, user, passwd string) *Engine {
 	var db *gorm.DB
 	var err error
-	if config.Read().DB.Type == config.Mysql {
+	if config.Read().DB.Type == ext.Mysql {
 		dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 			user, passwd, address, database)
 		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})

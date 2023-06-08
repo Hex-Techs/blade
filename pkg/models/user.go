@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/hex-techs/blade/pkg/util/config"
-	"github.com/hex-techs/blade/pkg/util/token"
+	"github.com/hex-techs/blade/pkg/utils/config"
+	"github.com/hex-techs/blade/pkg/utils/token"
 	"golang.org/x/crypto/pbkdf2"
 )
 

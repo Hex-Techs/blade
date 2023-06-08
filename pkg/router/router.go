@@ -2,8 +2,8 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/hex-techs/blade/pkg/util/storage"
-	"github.com/hex-techs/blade/pkg/util/web"
+	"github.com/hex-techs/blade/pkg/utils/storage"
+	"github.com/hex-techs/blade/pkg/utils/web"
 	"github.com/hex-techs/blade/pkg/view/authentication"
 	"github.com/hex-techs/blade/pkg/view/module"
 	"github.com/hex-techs/blade/pkg/view/user"

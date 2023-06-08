@@ -48,7 +48,7 @@ type Request struct {
 }
 
 func (q *Request) Default() {
-	if q.Limit < 0 {
+	if q.Limit <= 0 {
 		q.Limit = -1
 		q.Page = 1
 	}

@@ -1,15 +1,15 @@
 package cmd
 
 import (
+	"github.com/fize/go-ext/log"
 	"github.com/gin-gonic/gin"
 	"github.com/hex-techs/blade/pkg/router"
-	"github.com/hex-techs/blade/pkg/util/config"
-	"github.com/hex-techs/blade/pkg/util/log"
-	"github.com/hex-techs/blade/pkg/util/storage"
+	"github.com/hex-techs/blade/pkg/utils/config"
+	"github.com/hex-techs/blade/pkg/utils/storage"
 )
 
 func Run() *gin.Engine {
-	if err := config.Load("config.yaml"); err != nil {
+	if err := config.Load(".", "config.yaml"); err != nil {
 		panic(err)
 	}
 	logger := log.InitLogger()

@@ -20,6 +20,8 @@ type Module struct {
 	ParentID uint `gorm:"index" json:"parentID"`
 	// 级别
 	Level uint `gorm:"index" json:"level"`
+	// module全称
+	FullName string `json:"fullName"`
 }
 
 func (m *Module) BeforeCreate(tx *gorm.DB) error {
@@ -34,5 +36,38 @@ func (m *Module) BeforeCreate(tx *gorm.DB) error {
 		return fmt.Errorf("parent module error: %v", r.Error)
 	}
 	m.Level = parent.Level + 1
+	if m.Level > 5 {
+		// 最多支持5级
+		return fmt.Errorf("module level more than 5")
+	}
 	return nil
+}
+
+func (m *Module) AfterFind(tx *gorm.DB) error {
+	t, err := m.findParent(tx)
+	if err != nil {
+		return err
+	}
+	m.FullName = fmt.Sprintf("%s/%s", t, m.Name)
+	return nil
+}
+
+func (m *Module) findParent(tx *gorm.DB) (string, error) {
+	if m.ParentID == 0 {
+		return "", nil
+	}
+	var parent Module
+	r := tx.Model(m).Where("id = ?", m.ParentID).First(&parent)
+	if r.Error != nil {
+		return "", fmt.Errorf("parent module error: %v", r.Error)
+	}
+	if parent.ParentID == 0 {
+		return parent.Name, nil
+	} else {
+		n, err := parent.findParent(tx)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("%s/%s", n, parent.Name), nil
+	}
 }

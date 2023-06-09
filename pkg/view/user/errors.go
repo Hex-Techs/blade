@@ -23,6 +23,8 @@ const (
 	ErrInvalidParam = "invalid param"
 	// 生成token失败
 	ErrGenerateUserToken = "generate user token failed"
+	// 不能删除管理员
+	ErrDeleteAdmin = "can not delete admin"
 )
 
 var errorMap = map[string]int{

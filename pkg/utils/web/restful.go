@@ -7,6 +7,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	CREATE = "create"
+	DELETE = "delete"
+	UPDATE = "update"
+	PATCH  = "patch"
+	GET    = "get"
+	LIST   = "list"
+)
+
 // RestController restful风格的控制器
 type RestController interface {
 	// Create is the method for router.POST
@@ -25,6 +34,13 @@ type RestController interface {
 	Version() string
 	// 当前资源名称
 	Name() string
+	// 中间件管理
+	Middlewares() []MiddlewaresObject
+}
+
+type MiddlewaresObject struct {
+	Methods     []string
+	Middlewares []gin.HandlerFunc
 }
 
 // basicAPIGroup is the basic api group
@@ -47,24 +63,69 @@ type RestfulAPI struct {
 func (r *RestfulAPI) Install(e *gin.Engine, rc RestController) {
 	versionAPIGroup := basicAPIGroup(e).Group("/" + rc.Version())
 	r.handleParameter(rc)
+	hmm := r.handleMiddlewares(rc)
 	if post, err := rc.Create(); err == nil {
-		versionAPIGroup.POST(r.path, post)
+		if ms, ok := hmm[CREATE]; ok {
+			ms = append(ms, post)
+			versionAPIGroup.POST(r.path, ms...)
+		} else {
+			versionAPIGroup.POST(r.path, post)
+		}
 	}
 	if del, err := rc.Delete(); err == nil {
-		versionAPIGroup.DELETE(r.longpath, del)
+		if ms, ok := hmm[DELETE]; ok {
+			ms = append(ms, del)
+			versionAPIGroup.DELETE(r.longpath, ms...)
+		} else {
+			versionAPIGroup.DELETE(r.longpath, del)
+		}
 	}
 	if put, err := rc.Update(); err == nil {
-		versionAPIGroup.PUT(r.longpath, put)
+		if ms, ok := hmm[UPDATE]; ok {
+			ms = append(ms, put)
+			versionAPIGroup.PUT(r.longpath, ms...)
+		} else {
+			versionAPIGroup.PUT(r.longpath, put)
+		}
 	}
 	if patch, err := rc.Patch(); err == nil {
-		versionAPIGroup.PATCH(r.longpath, patch)
+		if ms, ok := hmm[PATCH]; ok {
+			ms = append(ms, patch)
+			versionAPIGroup.PATCH(r.longpath, ms...)
+		} else {
+			versionAPIGroup.PATCH(r.longpath, patch)
+		}
 	}
 	if get, err := rc.Get(); err == nil {
-		versionAPIGroup.GET(r.longpath, get)
+		if ms, ok := hmm[GET]; ok {
+			ms = append(ms, get)
+			versionAPIGroup.GET(r.longpath, ms...)
+		} else {
+			versionAPIGroup.GET(r.longpath, get)
+		}
 	}
 	if list, err := rc.List(); err == nil {
-		versionAPIGroup.GET(r.path, list)
+		if ms, ok := hmm[LIST]; ok {
+			ms = append(ms, list)
+			versionAPIGroup.GET(r.path, ms...)
+		} else {
+			versionAPIGroup.GET(r.path, list)
+		}
 	}
+}
+
+func (r *RestfulAPI) handleMiddlewares(rc RestController) map[string][]gin.HandlerFunc {
+	hmr := rc.Middlewares()
+	if hmr != nil {
+		mmap := map[string][]gin.HandlerFunc{}
+		for _, hm := range hmr {
+			for _, method := range hm.Methods {
+				mmap[method] = hm.Middlewares
+			}
+		}
+		return mmap
+	}
+	return nil
 }
 
 func (r *RestfulAPI) handleParameter(rc RestController) {
@@ -125,4 +186,8 @@ func (d *DefaultController) Version() string {
 // Name return the restful API name
 func (d *DefaultController) Name() string {
 	return "blade"
+}
+
+func (d *DefaultController) Middlewares() []MiddlewaresObject {
+	return nil
 }

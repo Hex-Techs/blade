@@ -56,6 +56,10 @@ func (uc *UserController) Delete() (gin.HandlerFunc, error) {
 			return
 		}
 		u := web.GetCurrentUser(c)
+		if u.Name == "admin" {
+			c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrDeleteAdmin], ErrDeleteAdmin))
+			return
+		}
 		// 不能删除自己
 		if u.ID == id {
 			c.JSON(http.StatusOK, web.ExceptResponse(errorMap[ErrDeleteSelf], ErrDeleteSelf))
@@ -144,4 +148,17 @@ func (uc *UserController) List() (gin.HandlerFunc, error) {
 		}
 		c.JSON(http.StatusOK, web.ListResponse(int(total), users))
 	}, nil
+}
+
+func (uc *UserController) Middlewares() []web.MiddlewaresObject {
+	return []web.MiddlewaresObject{
+		{
+			Methods:     []string{web.CREATE, web.DELETE},
+			Middlewares: []gin.HandlerFunc{web.LoginRequired(), web.AdminRequired()},
+		},
+		{
+			Methods:     []string{web.UPDATE, web.GET, web.LIST},
+			Middlewares: []gin.HandlerFunc{web.LoginRequired()},
+		},
+	}
 }

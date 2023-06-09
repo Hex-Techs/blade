@@ -137,7 +137,7 @@ func (mc *ModuleController) List() (gin.HandlerFunc, error) {
 		log.Debugf("list modules: %+v", req)
 		if req.Level == 0 && req.ParentID == 0 {
 			c.JSON(http.StatusBadRequest, web.ExceptResponse(errorMap[ErrInvalidParam],
-				"level and parent_id can't be 0 at the same time"))
+				"level and parentID can't be 0 at the same time"))
 			return
 		}
 		var condition string
@@ -148,7 +148,7 @@ func (mc *ModuleController) List() (gin.HandlerFunc, error) {
 		// 查询条件中，parent_id比level有更高的优先级
 		if req.ParentID != 0 {
 			condition = "parent_id = " + fmt.Sprint(req.ParentID)
-			log.Debugw("list modules by parent_id", "condition", condition)
+			log.Debugw("list modules by parentID", "condition", condition)
 		}
 		var modules []models.Module
 		total, err := mc.Store.List(context.TODO(), req.Limit, req.Page, condition, &modules)
@@ -158,4 +158,17 @@ func (mc *ModuleController) List() (gin.HandlerFunc, error) {
 		}
 		c.JSON(http.StatusOK, web.ListResponse(int(total), modules))
 	}, nil
+}
+
+func (uc *ModuleController) Middlewares() []web.MiddlewaresObject {
+	return []web.MiddlewaresObject{
+		{
+			Methods:     []string{web.CREATE, web.DELETE},
+			Middlewares: []gin.HandlerFunc{web.LoginRequired(), web.AdminRequired()},
+		},
+		{
+			Methods:     []string{web.UPDATE, web.GET, web.LIST},
+			Middlewares: []gin.HandlerFunc{web.LoginRequired()},
+		},
+	}
 }
